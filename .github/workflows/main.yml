@@ -39,4 +39,9 @@ jobs:
     - name: Environment
       run: | 
         env 
-        echo $GITHUB_RUN_NUMBER
+        
+    - name: Build
+      run: dotnet build GitHubTestLogger.sln --configuration Debug
+    
+    - name: Test
+      run: dotnet test --logger "github;report-warnings=false;GITHUB_TOKEN=${{secrets.GITHUB_TOKEN}}" -c Debug
