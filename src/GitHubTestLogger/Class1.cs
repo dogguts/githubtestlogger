@@ -30,7 +30,7 @@ namespace GitHubTestLogger {
             events.TestRunStart += Events_TestRunStart;
 
             events.DiscoveredTests += Events_DiscoveredTests;
-
+            //GITHUB_SHA
             var env = Environment.GetEnvironmentVariables(EnvironmentVariableTarget.Process);
             var GITHUB_REPOSITORY_OWNER = env["GITHUB_REPOSITORY_OWNER"].ToString();
 
@@ -39,8 +39,18 @@ namespace GitHubTestLogger {
             };
             var user = github.User.Get("dogguts").Result;
             Console.WriteLine("/// GotUser:" + user.Name);
-            Console.WriteLine("env.?GotTOKEN?:" + env["GITHUB_TOKEN"].ToString());
- 
+
+            Console.Write("attempt check run creation");
+
+            var check = new NewCheckRun("test-report", env["GITHUB_SHA"].ToString()) {
+                Output = new NewCheckRunOutput("NewCheckRunOutput.Title", "NewCheckRunOutput.Summary") {
+                    Text = "NewCheckRunOutput.Text",
+                },
+                Status = CheckStatus.InProgress,
+                //Conclusion = CheckConclusion.Neutral , 
+            };
+            var checkRun = github.Check.Run.Create("dogguts", "sandbox", check).Result;
+
         }
 
         private void Events_DiscoveredTests(object sender, DiscoveredTestsEventArgs e) {
@@ -50,7 +60,7 @@ namespace GitHubTestLogger {
         private void Events_TestRunStart(object sender, TestRunStartEventArgs e) {
             //nouse
             // throw new NotImplementedException();
-         
+
         }
 
         private void Events_TestRunComplete(object sender, TestRunCompleteEventArgs e) {
