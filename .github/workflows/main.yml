@@ -1,0 +1,41 @@
+name: ActionWorkFlowCommandTest
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    # Runs a single command using the runners shell
+      
+    - name: Test group
+      run: echo "::group::This is a group"
+      
+    - name: Test debug 
+      run: echo "::debug::This is a debug message"
+
+    - name: Test warning
+      run: echo "::warning file=somefile.cs,line=1,col=5::Achtung, test failed"
+
+    - name: Test error
+      run: echo "::error file=someotherfile.cs,line=16,col=8::Achtung, test kaput"
+
+    - name: Test warning multiline
+      run: echo "::warning file=somefile.cs,line=1,col=5::Achtung, test failed<br>just a warning"
+
+    - name: Test warning multiline2
+      run: echo "::warning file=somefile.cs,line=1,col=5::Achtung, test failed<br>nw1%0Anw2\%0Anew3/%0Anw4"
+
+    - name: Test endGroup
+      run: echo "::endgroup::This is a group"
+    
+    - name: Environment
+      run: | 
+        echo $GITHUB_RUN_NUMBER
