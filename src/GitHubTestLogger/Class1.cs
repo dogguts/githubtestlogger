@@ -31,18 +31,16 @@ namespace GitHubTestLogger {
 
             events.DiscoveredTests += Events_DiscoveredTests;
 
-            /*
-             /// <summary>
-        /// Called when a test run start is received
-        /// </summary>
-        private void TestRunStartHandler(object sender, TestRunStartEventArgs e)
-        {
-            ValidateArg.NotNull<object>(sender, "sender");
-            ValidateArg.NotNull<TestRunStartEventArgs>(e, "e");
+            var env = Environment.GetEnvironmentVariables(EnvironmentVariableTarget.Process);
+            var GITHUB_REPOSITORY_OWNER = env["GITHUB_REPOSITORY_OWNER"].ToString();
 
-            // Print all test containers.
-            Output.WriteLine(string.Empty, OutputLevel.Information);
-            */
+            var github = new GitHubClient(new ProductHeaderValue(GITHUB_REPOSITORY_OWNER)) {
+                Credentials = new Credentials(parameters["GITHUB_TOKEN"]) //"a566f1e921b2af225370d55ee114e53d61394e58"),// NOTE: !! real token
+            };
+            var user = github.User.Get("dogguts").Result;
+            Console.WriteLine("/// GotUser:" + user.Name);
+            Console.WriteLine("env.?GotTOKEN?:" + env["GITHUB_TOKEN"].ToString());
+ 
         }
 
         private void Events_DiscoveredTests(object sender, DiscoveredTestsEventArgs e) {
@@ -52,15 +50,7 @@ namespace GitHubTestLogger {
         private void Events_TestRunStart(object sender, TestRunStartEventArgs e) {
             //nouse
             // throw new NotImplementedException();
-            var env = Environment.GetEnvironmentVariables(EnvironmentVariableTarget.Process);
-            var GITHUB_REPOSITORY_OWNER = env["GITHUB_REPOSITORY_OWNER"].ToString();
-
-            var github = new GitHubClient(new ProductHeaderValue(GITHUB_REPOSITORY_OWNER)) {
-                Credentials = new Credentials("a566f1e921b2af225370d55ee114e53d61394e58"),// NOTE: !! real token
-            };
-            var user = github.User.Get("dogguts").Result;
-            Console.WriteLine("/// GotUser:" + user.Name);
-            Console.WriteLine("GotTOKEN?:" + env["GITHUB_TOKEN"].ToString());
+         
         }
 
         private void Events_TestRunComplete(object sender, TestRunCompleteEventArgs e) {
