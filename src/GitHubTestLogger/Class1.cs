@@ -15,10 +15,15 @@ namespace GitHubTestLogger {
 
         /// <summary>Alternate user friendly string to uniquely identify the console logger.</summary>
         public const string FriendlyName = "github";
-
+        public readonly string GITHUB_TOKEN = "";
         public void Initialize(TestLoggerEvents events, Dictionary<string, string> parameters) {
+            //GITHUB_TOKEN
             Console.WriteLine("Initialize1-w");
-            System.Diagnostics.Debugger.Launch();
+
+            foreach (var p in parameters) {
+                Console.WriteLine("param: " + p.Key + "=" + p.Value);
+            }
+            //System.Diagnostics.Debugger.Launch();
             events.TestRunMessage += Events_TestRunMessage;
             events.TestResult += this.TestResultHandler;
             events.TestRunComplete += Events_TestRunComplete;
@@ -54,6 +59,8 @@ namespace GitHubTestLogger {
                 Credentials = new Credentials("a566f1e921b2af225370d55ee114e53d61394e58"),// NOTE: !! real token
             };
             var user = github.User.Get("dogguts").Result;
+            Console.WriteLine("/// GotUser:" + user.Name);
+            Console.WriteLine("GotTOKEN?:" + env["GITHUB_TOKEN"].ToString());
         }
 
         private void Events_TestRunComplete(object sender, TestRunCompleteEventArgs e) {
@@ -73,10 +80,10 @@ namespace GitHubTestLogger {
 
         private void TestResultHandler(object sender, TestResultEventArgs e) {
 
-            Console.WriteLine("+++ " + e.Result.Outcome.ToString());
-            Console.WriteLine(e.Result.TestCase.FullyQualifiedName);
-            Console.WriteLine(e.Result.TestCase.Source);
-            Console.WriteLine(e.Result.TestCase.LineNumber);
+            Console.WriteLine(e.Result.TestCase.FullyQualifiedName + "+++ " + e.Result.Outcome.ToString());
+            //Console.WriteLine(e.Result.TestCase.FullyQualifiedName);
+            //Console.WriteLine(e.Result.TestCase.Source);
+            //Console.WriteLine(e.Result.TestCase.LineNumber);
         }
 
 
