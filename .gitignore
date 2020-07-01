@@ -1,0 +1,18 @@
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+build/
+bld/
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+.vs/
+msbuild.log
+msbuild.err
+msbuild.wrn
+#TEMP: temp location of docfx nuget install
+docfx.console*

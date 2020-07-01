@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "xUnitTest": {
+      "commandName": "Project",
+      "workingDirectory": "D:\\Dropbox\\Projects\\GitHubTestLogger\\src\\xUnitTest"
+    }
+  }
+}
