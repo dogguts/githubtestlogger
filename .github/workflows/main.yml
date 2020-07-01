@@ -38,4 +38,5 @@ jobs:
     
     - name: Environment
       run: | 
+        env 
         echo $GITHUB_RUN_NUMBER
