@@ -1,4 +1,5 @@
-﻿#define ENABLE_GH_API
+﻿//#define ENABLE_GH_API
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -34,9 +35,9 @@ namespace GitHubTestLogger {
         private string GITHUB_SHA;
         private string GITHUB_WORKSPACE; // /home/runner/work/sandbox/sandbox
         private CheckRun CurrentCheckRun = null;
-#if ENABLE_GH_API
+//#if ENABLE_GH_API
         private GitHubClient gitHubClient = null;
-#endif 
+//#endif 
 
         /// <summary>Concatenate Dictionaries, keep the first KeyValuePair on duplicate Keys</summary>
         private static Dictionary<string, string> BuildVariables(params Dictionary<string, string>[] args) {
@@ -94,11 +95,11 @@ namespace GitHubTestLogger {
             GITHUB_WORKSPACE = GITHUB_WORKSPACE ?? "";
 
             // connection to github api 
-#if ENABLE_GH_API
+//#if ENABLE_GH_API
             gitHubClient = new GitHubClient(new ProductHeaderValue(GITHUB_REPOSITORY_OWNER)) {
                 Credentials = new Credentials(GITHUB_TOKEN)
             };
-#endif
+//#endif
             //foreach (var p in Vars) {
             //    Console.WriteLine("variable: " + p.Key + "=" + p.Value);
             //}
@@ -148,9 +149,9 @@ namespace GitHubTestLogger {
                 },
                 Status = CheckStatus.InProgress,
             };
-#if ENABLE_GH_API
+//#if ENABLE_GH_API
             CurrentCheckRun = gitHubClient.Check.Run.Create(GITHUB_REPOSITORY_OWNER, GITHUB_REPOSITORY_NAME, check).Result;
-#endif
+//#endif
         }
 
         /// <summary>Raised when a test result is received.</summary>
@@ -179,9 +180,9 @@ namespace GitHubTestLogger {
                 check.Output = new NewCheckRunOutput(CheckRunName, "Running...") {
                     Annotations = new List<NewCheckRunAnnotation>() { newAnnotation }
                 };
-#if ENABLE_GH_API
+//#if ENABLE_GH_API
                 CurrentCheckRun = gitHubClient.Check.Run.Update(GITHUB_REPOSITORY_OWNER, GITHUB_REPOSITORY_NAME, CurrentCheckRun.Id, check).Result;
-#endif
+//#endif
             }
             // update check run with additional annotations
             //gitHubClient.Check.Run.
