@@ -27,17 +27,21 @@ namespace GitHubTestLogger {
 
         private readonly string[] MandatoryVars = { "GITHUB_REPOSITORY_OWNER", "GITHUB_TOKEN", "GITHUB_SHA", "GITHUB_REPOSITORY" };
 
-        private Dictionary<string, string> Vars;
+        private IDictionary<string, string> Vars = new Dictionary<string, string>();
 
-        private string GITHUB_REPOSITORY_OWNER;
-        private string GITHUB_REPOSITORY_NAME;
-        private string GITHUB_TOKEN;
-        private string GITHUB_SHA;
-        private string GITHUB_WORKSPACE; // /home/runner/work/sandbox/sandbox
-        private CheckRun CurrentCheckRun = null;
-//#if ENABLE_GH_API
-        private GitHubClient gitHubClient = null;
-//#endif 
+        private string GITHUB_REPOSITORY_OWNER = string.Empty;
+        private string GITHUB_REPOSITORY_NAME = string.Empty;
+        private string GITHUB_TOKEN = string.Empty;
+        private string GITHUB_SHA = string.Empty;
+        private string GITHUB_WORKSPACE = string.Empty; // /home/runner/work/sandbox/sandbox
+        private CheckRun? CurrentCheckRun = null;
+        //#if ENABLE_GH_API
+        private IGitHubClient? _gitHubClient = null;//= new GitHubClient();
+        private IGitHubClient GitHubClient {
+            get => _gitHubClient ?? throw new NullReferenceException($"{nameof(GitHubClient)} not initialized");
+            set => _gitHubClient = value;
+        }
+        //#endif 
 
         /// <summary>Concatenate Dictionaries, keep the first KeyValuePair on duplicate Keys</summary>
         private static Dictionary<string, string> BuildVariables(params Dictionary<string, string>[] args) {
@@ -79,36 +83,33 @@ namespace GitHubTestLogger {
             Vars = BuildVariables(parameters, environmentVariables);
 
             // Keep some frequently used Vars 
-            Vars.TryGetValue("GITHUB_REPOSITORY_OWNER", out GITHUB_REPOSITORY_OWNER);
-            GITHUB_REPOSITORY_OWNER = GITHUB_REPOSITORY_OWNER ?? "";
+            GITHUB_REPOSITORY_OWNER = Vars.GetValueOrDefault("GITHUB_REPOSITORY_OWNER", string.Empty);
 
-            Vars.TryGetValue("GITHUB_REPOSITORY_NAME", out GITHUB_REPOSITORY_NAME);
-            GITHUB_REPOSITORY_NAME = GITHUB_REPOSITORY_NAME?.Split('/').Last() ?? "";
+            GITHUB_REPOSITORY_NAME = Vars.GetValueOrDefault("GITHUB_REPOSITORY", string.Empty).Split('/').Last();
 
-            Vars.TryGetValue("GITHUB_TOKEN", out GITHUB_TOKEN);
-            GITHUB_TOKEN = GITHUB_TOKEN ?? "";
+            GITHUB_TOKEN = Vars.GetValueOrDefault("GITHUB_TOKEN", string.Empty);
 
-            Vars.TryGetValue("GITHUB_SHA", out GITHUB_SHA);
-            GITHUB_SHA = GITHUB_SHA ?? "";
+            GITHUB_SHA = Vars.GetValueOrDefault("GITHUB_SHA", string.Empty);
 
-            Vars.TryGetValue("GITHUB_WORKSPACE", out GITHUB_WORKSPACE);
-            GITHUB_WORKSPACE = GITHUB_WORKSPACE ?? "";
+            GITHUB_WORKSPACE = Vars.GetValueOrDefault("GITHUB_WORKSPACE", String.Empty);
 
             // connection to github api 
-//#if ENABLE_GH_API
-            gitHubClient = new GitHubClient(new ProductHeaderValue(GITHUB_REPOSITORY_OWNER)) {
+            //#if ENABLE_GH_API
+            GitHubClient = new GitHubClient(new ProductHeaderValue(GITHUB_REPOSITORY_OWNER)) {
                 Credentials = new Credentials(GITHUB_TOKEN)
             };
-//#endif
-            //foreach (var p in Vars) {
-            //    Console.WriteLine("variable: " + p.Key + "=" + p.Value);
-            //}
+            //#endif
+            foreach (var p in Vars) {
+                Console.WriteLine("+++ variable: " + p.Key + "=" + p.Value);
+            }
 
             // Raised when a test message is received.
             events.TestRunMessage += Events_TestRunMessage;
 
             // Raised when a test run starts.
-            events.TestRunStart += Events_TestRunStart;
+            events.TestRunStart += async (s, e) => {
+                await Events_TestRunStart(s, e);
+            };
 
             // Raised when a test result is received.
             events.TestResult += Events_TestResult;
@@ -136,34 +137,35 @@ namespace GitHubTestLogger {
         }
 
         /// <summary>Raised when a test run starts.</summary> 
-        private void Events_TestRunStart(object sender, TestRunStartEventArgs e) {
+        private async Task Events_TestRunStart(object sender, TestRunStartEventArgs e) {
             Console.WriteLine($"*** Events_TestRunStart ***");
 
 
 
             Console.Write("attempt check run creation");
 
-            var check = new NewCheckRun(CheckRunName, GITHUB_SHA) {
-                Output = new NewCheckRunOutput(CheckRunName, "Running...") {
-                    //Text = "NewCheckRunOutput.Text",
+            var newCheckRun = new NewCheckRun(CheckRunName, GITHUB_SHA) {
+                Output = new NewCheckRunOutput("somethingg titly", "Something summary Running...") {
+                    Text = "NewCheckRunOutput.Text",
                 },
                 Status = CheckStatus.InProgress,
             };
-//#if ENABLE_GH_API
-            CurrentCheckRun = gitHubClient.Check.Run.Create(GITHUB_REPOSITORY_OWNER, GITHUB_REPOSITORY_NAME, check).Result;
-//#endif
+            //#if ENABLE_GH_API
+
+            CurrentCheckRun = await GitHubClient.Check.Run.Create(GITHUB_REPOSITORY_OWNER, GITHUB_REPOSITORY_NAME, newCheckRun);
+            //#endif
         }
 
         /// <summary>Raised when a test result is received.</summary>
         private void Events_TestResult(object sender, TestResultEventArgs e) {
             Console.WriteLine($"*** Events_TestResult *** {e.Result.TestCase.FullyQualifiedName}: {e.Result.ErrorMessage}-{e.Result.Outcome} ");
-            return;
+
             if (e.Result.Outcome == TestOutcome.Passed || e.Result.Outcome == TestOutcome.None) {
                 //don't annotate successfull tests
                 return;
             }
 
-            NewCheckRunAnnotation newAnnotation = null;
+            NewCheckRunAnnotation? newAnnotation = null;
             switch (e.Result.Outcome) {
                 case TestOutcome.Failed: // CheckAnnotationLevel.Failure
                     var (filename, methodname, sourceline) = StackFrameFromTrace(e.Result.ErrorStackTrace);
@@ -180,9 +182,9 @@ namespace GitHubTestLogger {
                 check.Output = new NewCheckRunOutput(CheckRunName, "Running...") {
                     Annotations = new List<NewCheckRunAnnotation>() { newAnnotation }
                 };
-//#if ENABLE_GH_API
-                CurrentCheckRun = gitHubClient.Check.Run.Update(GITHUB_REPOSITORY_OWNER, GITHUB_REPOSITORY_NAME, CurrentCheckRun.Id, check).Result;
-//#endif
+                //#if ENABLE_GH_API
+                CurrentCheckRun = GitHubClient.Check.Run.Update(GITHUB_REPOSITORY_OWNER, GITHUB_REPOSITORY_NAME, CurrentCheckRun?.Id ?? -1, check).Result;
+                //#endif
             }
             // update check run with additional annotations
             //gitHubClient.Check.Run.
@@ -206,7 +208,7 @@ namespace GitHubTestLogger {
 
             //  gitHubClient.Check.Run.Update ()
 
-            
+
             //Console.WriteLine(e.Result.TestCase.FullyQualifiedName + "+++ " + e.Result.Outcome.ToString());
             //Console.WriteLine(e.Result.TestCase.FullyQualifiedName);
             //Console.WriteLine(e.Result.TestCase.Source);
