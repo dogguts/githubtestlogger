@@ -1,4 +1,4 @@
-﻿//#define ENABLE_GH_API
+﻿#define ENABLE_GH_API
 
 using System;
 using System.Collections.Generic;
@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Client;
@@ -35,15 +36,16 @@ namespace GitHubTestLogger {
         private string GITHUB_REPOSITORY_NAME = string.Empty;
         private string GITHUB_TOKEN = string.Empty;
         private string GITHUB_SHA = string.Empty;
-        private string GITHUB_WORKSPACE = string.Empty; // /home/runner/work/sandbox/sandbox
+        private string GITHUB_WORKSPACE = string.Empty;
         private CheckRun? CurrentCheckRun = null;
-        //#if ENABLE_GH_API
-        private IGitHubClient? _gitHubClient = null;//= new GitHubClient();
+
+#if ENABLE_GH_API
+        private IGitHubClient? _gitHubClient = null;
         private IGitHubClient GitHubClient {
             get => _gitHubClient ?? throw new NullReferenceException($"{nameof(GitHubClient)} not initialized");
             set => _gitHubClient = value;
         }
-        //#endif 
+#endif
 
         /// <summary>Concatenate Dictionaries, keep the first KeyValuePair on duplicate Keys</summary>
         private static Dictionary<string, string> BuildVariables(params Dictionary<string, string>[] args) {
@@ -64,82 +66,66 @@ namespace GitHubTestLogger {
 
         private string WorkspaceRelativePath(string fullPath) {
             if (!string.IsNullOrEmpty(GITHUB_WORKSPACE)) {
-                return fullPath.Replace(GITHUB_WORKSPACE, "");
+                return fullPath.Replace(GITHUB_WORKSPACE, "").TrimStart('\\', '/');
             } else {
                 return fullPath;
             }
         }
 
-
-        private const string TestMessageFormattingPrefix = " ";
-        private const string TestResultPrefix = "  ";
-
-        private static string GetFormattedOutput(IEnumerable<TestResultMessage> testMessageCollection) {
-            if (testMessageCollection != null) {
-                var sb = new System.Text.StringBuilder();
-                foreach (var message in testMessageCollection) {
-                    var prefix = String.Format(CultureInfo.CurrentCulture, "{0}{1}", Environment.NewLine, TestMessageFormattingPrefix);
-                    var messageText = message.Text?.Replace(Environment.NewLine, prefix).TrimEnd(TestMessageFormattingPrefix.ToCharArray());
-
-                    if (!string.IsNullOrWhiteSpace(messageText)) {
-                        sb.AppendFormat(CultureInfo.CurrentCulture, "{0}{1}", TestMessageFormattingPrefix, messageText);
-                    }
-                }
-                return sb.ToString();
+        private static string FormatTimeSpan(TimeSpan timeSpan) {
+            if (timeSpan.TotalDays >= 1) {
+                return string.Format("{0:0.0000} {1}", timeSpan.TotalDays, "Days");
+            } else if (timeSpan.TotalHours >= 1) {
+                return string.Format("{0:0.0000} {1}", timeSpan.TotalHours, "Hours");
+            } else if (timeSpan.TotalMinutes >= 1) {
+                return string.Format("{0:0.0000} {1}", timeSpan.TotalMinutes, "Minutes");
+            } else {
+                return string.Format("{0:0.0000} {1}", timeSpan.TotalSeconds, "Seconds");
             }
-            return String.Empty;
         }
 
         private string GetFullInformation(TestResult result) {
             var Output = new System.Text.StringBuilder();
 
             if (!String.IsNullOrEmpty(result.ErrorMessage)) {
-                Output.AppendFormatLine(CultureInfo.CurrentCulture, "{0}{1}", TestResultPrefix, "Error Message:");
-                Output.AppendFormatLine(CultureInfo.CurrentCulture, "{0}{1}{2}", TestResultPrefix, TestMessageFormattingPrefix, result.ErrorMessage);
+                Output.AppendLine("== Error Message ==");
+                Output.AppendLine(result.ErrorMessage);
             }
 
             if (!String.IsNullOrEmpty(result.ErrorStackTrace)) {
-                Output.AppendFormatLine("{0}{1}", TestResultPrefix, "Stack Trace:");
-                Output.AppendFormatLine(CultureInfo.CurrentCulture, "{0}{1}", TestResultPrefix, result.ErrorStackTrace);
+                Output.AppendLine("== Stack Trace ==");
+                Output.AppendLine(result.ErrorStackTrace);
             }
 
             var stdOutMessagesList = result.Messages.Where(msg => msg.Category.Equals(TestResultMessage.StandardOutCategory, StringComparison.OrdinalIgnoreCase)).ToList();
             if (stdOutMessagesList.Count > 0) {
-                var stdOutMessages = GetFormattedOutput(stdOutMessagesList);
-
-                if (!string.IsNullOrEmpty(stdOutMessages)) {
-                    Output.AppendFormatLine("{0}{1}", TestResultPrefix, "Standard Output Messages:");
-                    Output.AppendLine(stdOutMessages);
+                Output.AppendLine("== Standard Output Messages ==");
+                foreach (TestResultMessage message in stdOutMessagesList) {
+                    Output.AppendLine(message.Text);
                 }
             }
 
             var stdErrMessagesList = result.Messages.Where(msg => msg.Category.Equals(TestResultMessage.StandardErrorCategory, StringComparison.OrdinalIgnoreCase)).ToList();
             if (stdErrMessagesList.Count > 0) {
-                var stdErrMessages = GetFormattedOutput(stdErrMessagesList);
-
-                if (!string.IsNullOrEmpty(stdErrMessages)) {
-                    Output.AppendFormatLine("{0}{1}", TestResultPrefix, "Standard Error Messages:");
-                    Output.AppendLine(stdErrMessages);
+                Output.AppendLine("== Standard Error Messages ==");
+                foreach (TestResultMessage message in stdErrMessagesList) {
+                    Output.AppendLine(message.Text);
                 }
             }
 
             var dbgTrcMessagesList = result.Messages.Where(msg => msg.Category.Equals(TestResultMessage.DebugTraceCategory, StringComparison.OrdinalIgnoreCase)).ToList();
             if (dbgTrcMessagesList.Count > 0) {
-                var dbgTrcMessages = GetFormattedOutput(dbgTrcMessagesList);
-
-                if (!string.IsNullOrEmpty(dbgTrcMessages)) {
-                    Output.AppendFormatLine("{0}{1}", TestResultPrefix, "Debug Trace Messages:");
-                    Output.AppendLine(dbgTrcMessages);
+                Output.AppendLine("== Debug Trace Messages ==");
+                foreach (TestResultMessage message in dbgTrcMessagesList) {
+                    Output.AppendLine(message.Text);
                 }
             }
 
             var addnlInfoMessagesList = result.Messages.Where(msg => msg.Category.Equals(TestResultMessage.AdditionalInfoCategory, StringComparison.OrdinalIgnoreCase)).ToList();
             if (addnlInfoMessagesList.Count > 0) {
-                var addnlInfoMessages = GetFormattedOutput(addnlInfoMessagesList);
-
-                if (!string.IsNullOrEmpty(addnlInfoMessages)) {
-                    Output.AppendFormatLine("{0}{1}", TestResultPrefix, "Additional Information Messages:");
-                    Output.AppendLine(addnlInfoMessages);
+                Output.AppendLine("== Additional Information Messages ==");
+                foreach (TestResultMessage message in addnlInfoMessagesList) {
+                    Output.AppendLine(message.Text);
                 }
             }
             return Output.ToString();
@@ -171,11 +157,11 @@ namespace GitHubTestLogger {
             GITHUB_WORKSPACE = Vars.GetValueOrDefault("GITHUB_WORKSPACE", String.Empty);
 
             // connection to github api 
-            //#if ENABLE_GH_API
+#if ENABLE_GH_API
             GitHubClient = new GitHubClient(new ProductHeaderValue(GITHUB_REPOSITORY_OWNER)) {
                 Credentials = new Credentials(GITHUB_TOKEN)
             };
-            //#endif
+#endif
             foreach (var p in Vars) {
                 Console.WriteLine("+++ variable: " + p.Key + "=" + p.Value);
             }
@@ -191,19 +177,7 @@ namespace GitHubTestLogger {
             events.TestResult += async (s, e) => await Events_TestResult(s, e);
 
             // Raised when a test run is complete.
-            events.TestRunComplete += Events_TestRunComplete;
-
-            // Raised when test discovery starts
-            events.DiscoveryStart += Events_DiscoveryStart;
-
-            // Raised when a discovery message is received.
-            events.DiscoveryMessage += Events_DiscoveryMessage;
-
-            // Raised when discovered tests are received
-            events.DiscoveredTests += Events_DiscoveredTests;
-
-            // Raised when test discovery is complete
-            events.DiscoveryComplete += Events_DiscoveryComplete;
+            events.TestRunComplete += async (s, e) => await Events_TestRunComplete(s, e);
         }
 
 
@@ -217,20 +191,17 @@ namespace GitHubTestLogger {
         private async Task Events_TestRunStart(object sender, TestRunStartEventArgs e) {
             Console.WriteLine($"*** Events_TestRunStart ***");
 
-
-
             Console.Write("attempt check run creation");
 
             var newCheckRun = new NewCheckRun(CheckRunName, GITHUB_SHA) {
-                Output = new NewCheckRunOutput("somethingg titly", "Something summary Running...") {
-                    Text = "NewCheckRunOutput.Text",
+                Output = new NewCheckRunOutput(CheckRunName, "Starting...") {
+                    //Text = "NewCheckRunOutput.Text",
                 },
                 Status = CheckStatus.Queued,
             };
-            //#if ENABLE_GH_API
-
+#if ENABLE_GH_API
             CurrentCheckRun = await GitHubClient.Check.Run.Create(GITHUB_REPOSITORY_OWNER, GITHUB_REPOSITORY_NAME, newCheckRun);
-            //#endif
+#endif
         }
 
         /// <summary>Raised when a test result is received.</summary>
@@ -244,15 +215,16 @@ namespace GitHubTestLogger {
 
             NewCheckRunAnnotation? newAnnotation = null;
             switch (e.Result.Outcome) {
-                case TestOutcome.Failed: // CheckAnnotationLevel.Failure
+                case TestOutcome.Failed:
                     var (filename, methodname, sourceline) = StackFrameFromTrace(e.Result.ErrorStackTrace);
-                    newAnnotation = new NewCheckRunAnnotation(WorkspaceRelativePath(filename), int.Parse(sourceline), int.Parse(sourceline) + 5, CheckAnnotationLevel.Failure, e.Result.ErrorMessage);
-                    newAnnotation.Title = e.Result.DisplayName;
-                    newAnnotation.RawDetails = GetFullInformation(e.Result);
+                    newAnnotation = new NewCheckRunAnnotation(WorkspaceRelativePath(filename), int.Parse(sourceline), int.Parse(sourceline) + 5, CheckAnnotationLevel.Failure, e.Result.ErrorMessage) {
+                        Title = e.Result.DisplayName,
+                        RawDetails = GetFullInformation(e.Result)
+                    };
                     break;
-                case TestOutcome.Skipped: //CheckAnnotationLevel.Warning
+                case TestOutcome.Skipped: //CheckAnnotationLevel.Warning ?
                     break;
-                case TestOutcome.NotFound: // CheckAnnotationLevel.Failure
+                case TestOutcome.NotFound: // CheckAnnotationLevel.Failure ?
                     break;
             }
             if (newAnnotation != null) {
@@ -262,61 +234,61 @@ namespace GitHubTestLogger {
                     },
                     Status = CheckStatus.InProgress
                 };
-                //#if ENABLE_GH_API
+#if ENABLE_GH_API
                 CurrentCheckRun = await GitHubClient.Check.Run.Update(GITHUB_REPOSITORY_OWNER, GITHUB_REPOSITORY_NAME, CurrentCheckRun?.Id ?? -1, check);
-                //#endif
+#endif
             }
-
-            /*
-    TestOutcome:
-        None = 0,
-        Passed = 1,
-        Failed = 2,
-        Skipped = 3,
-        NotFound = 4
-             */
-            /*
-    public enum CheckAnnotationLevel {
-        Notice = 0,
-        Warning = 1,
-        Failure = 2
-    }             
-             */
-
-            //  gitHubClient.Check.Run.Update ()
-
-
-            //Console.WriteLine(e.Result.TestCase.FullyQualifiedName + "+++ " + e.Result.Outcome.ToString());
-            //Console.WriteLine(e.Result.TestCase.FullyQualifiedName);
-            //Console.WriteLine(e.Result.TestCase.Source);
-            //Console.WriteLine(e.Result.TestCase.LineNumber);
         }
 
         /// <summary>Raised when a test run is complete.</summary>
-        private void Events_TestRunComplete(object sender, TestRunCompleteEventArgs e) {
-            Console.WriteLine($"*** Events_TestRunComplete ***");
-            var xxxx = e.TestRunStatistics.Stats;
+        private async Task Events_TestRunComplete(object sender, TestRunCompleteEventArgs e) {
+            CheckConclusion gh_conclusion = CheckConclusion.Neutral;
+
+            var stringBuilder = new StringBuilder();
+            if (e.TestRunStatistics.Stats.Any(stat => stat.Key == TestOutcome.Failed && stat.Value > 0)) {
+                // failed
+                gh_conclusion = CheckConclusion.Failure;
+                stringBuilder.AppendLine(":red_circle: Test Run Failed.");
+            } else {
+                // passed
+                gh_conclusion = CheckConclusion.Success;
+                stringBuilder.AppendLine(":green_circle: Test Run Successful.");
+            }
+            if (e.IsAborted || e.IsCanceled) {
+                gh_conclusion = CheckConclusion.Cancelled;
+            }
+
+            stringBuilder.AppendLine($"Total tests: {e.TestRunStatistics.ExecutedTests}");
+
+            foreach (var stat in e.TestRunStatistics.Stats) {
+                stringBuilder.AppendLine(" - " + stat.Key switch
+                {
+                    TestOutcome.None => ":question:",
+                    TestOutcome.Passed => ":heavy_check_mark:",
+                    TestOutcome.Failed => ":heavy_multiplication_x:",
+                    TestOutcome.Skipped => ":large_orange_diamond:",
+                    TestOutcome.NotFound => ":skull_and_crossbones:",
+                    _ => ":skull:"
+                } + " " + $"{stat.Key.ToString()}: {stat.Value}");
+            }
+            stringBuilder.AppendLine();
+            stringBuilder.AppendLine($"Total time: {FormatTimeSpan(e.ElapsedTimeInRunningTests)}");
+
+            var check = new CheckRunUpdate() {
+                Output = new NewCheckRunOutput(CheckRunName, stringBuilder.ToString()) {
+
+                },
+                Status = CheckStatus.Completed,
+                Conclusion = gh_conclusion
+
+
+            };
+#if ENABLE_GH_API
+                CurrentCheckRun = await GitHubClient.Check.Run.Update(GITHUB_REPOSITORY_OWNER, GITHUB_REPOSITORY_NAME, CurrentCheckRun?.Id ?? -1, check);
+#endif 
+
 
         }
 
-        /// <summary>Raised when test discovery starts</summary> 
-        private void Events_DiscoveryStart(object sender, DiscoveryStartEventArgs e) {
-            Console.WriteLine($"*** Events_DiscoveryStart *** {e.DiscoveryCriteria}");
-        }
-
-        /// <summary>Raised when a discovery message is received.</summary>
-        private void Events_DiscoveryMessage(object sender, TestRunMessageEventArgs e) {
-            Console.WriteLine($"*** Events_DiscoveryMessage *** {e.Level}: {e.Message}");
-        }
-
-        /// <summary>Raised when discovered tests are received</summary>
-        private void Events_DiscoveredTests(object sender, DiscoveredTestsEventArgs e) {
-            Console.WriteLine($"*** Events_DiscoveredTests *** {e.DiscoveredTestCases}");
-        }
-
-        /// <summary>Raised when test discovery is complete</summary>
-        private void Events_DiscoveryComplete(object sender, DiscoveryCompleteEventArgs e) {
-            Console.WriteLine($"*** Events_DiscoveryComplete *** {e.TotalCount}");
-        }
     }
 }

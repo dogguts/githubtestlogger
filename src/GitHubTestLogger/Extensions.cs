@@ -14,11 +14,11 @@ namespace GitHubTestLogger {
             return dictionary.TryGetValue(key, out value) ? value : defaultValue;
         }
 
-        public static void AppendFormatLine(this StringBuilder stringbuilder, IFormatProvider provider, string format, params object[] args) {
-            stringbuilder.AppendLine(string.Format(provider, format, args));
-        }
-        public static void AppendFormatLine(this StringBuilder stringbuilder, string format, params object[] args) {
-            stringbuilder.AppendLine(string.Format(format, args));
-        }
+        // public static void AppendFormatLine(this StringBuilder stringbuilder, IFormatProvider provider, string format, params object[] args) {
+        //     stringbuilder.AppendLine(string.Format(provider, format, args));
+        // }
+        // public static void AppendFormatLine(this StringBuilder stringbuilder, string format, params object[] args) {
+        //     stringbuilder.AppendLine(string.Format(format, args));
+        // }
     }
 }
