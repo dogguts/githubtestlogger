@@ -157,7 +157,7 @@ namespace GitHubTestLogger {
         /// <summary>Raised when a test result is received.</summary>
         private void Events_TestResult(object sender, TestResultEventArgs e) {
             Console.WriteLine($"*** Events_TestResult *** {e.Result.TestCase.FullyQualifiedName}: {e.Result.ErrorMessage}-{e.Result.Outcome} ");
-
+            return;
             if (e.Result.Outcome == TestOutcome.Passed || e.Result.Outcome == TestOutcome.None) {
                 //don't annotate successfull tests
                 return;
@@ -206,7 +206,7 @@ namespace GitHubTestLogger {
 
             //  gitHubClient.Check.Run.Update ()
 
-            Console.WriteLine($"*** Events_TestResult *** {e.Result.TestCase.FullyQualifiedName}: {e.Result.ErrorMessage}-{e.Result.Outcome} ");
+            
             //Console.WriteLine(e.Result.TestCase.FullyQualifiedName + "+++ " + e.Result.Outcome.ToString());
             //Console.WriteLine(e.Result.TestCase.FullyQualifiedName);
             //Console.WriteLine(e.Result.TestCase.Source);
