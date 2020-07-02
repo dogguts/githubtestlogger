@@ -1,4 +1,5 @@
-﻿using System;
+﻿#define ENABLE_GH_API
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -33,7 +34,9 @@ namespace GitHubTestLogger {
         private string GITHUB_SHA;
         private string GITHUB_WORKSPACE; // /home/runner/work/sandbox/sandbox
         private CheckRun CurrentCheckRun = null;
+#if ENABLE_GH_API
         private GitHubClient gitHubClient = null;
+#endif 
 
         /// <summary>Concatenate Dictionaries, keep the first KeyValuePair on duplicate Keys</summary>
         private static Dictionary<string, string> BuildVariables(params Dictionary<string, string>[] args) {
@@ -53,7 +56,11 @@ namespace GitHubTestLogger {
         }
 
         private string WorkspaceRelativePath(string fullPath) {
-            return fullPath.Replace(GITHUB_WORKSPACE, "");
+            if (!string.IsNullOrEmpty(GITHUB_WORKSPACE)) {
+                return fullPath.Replace(GITHUB_WORKSPACE, "");
+            } else {
+                return fullPath;
+            }
         }
 
         public void Initialize(TestLoggerEvents events, string testRunDirectory) {
@@ -71,16 +78,27 @@ namespace GitHubTestLogger {
             Vars = BuildVariables(parameters, environmentVariables);
 
             // Keep some frequently used Vars 
-            GITHUB_REPOSITORY_OWNER = Vars["GITHUB_REPOSITORY_OWNER"];
-            GITHUB_REPOSITORY_NAME = Vars["GITHUB_REPOSITORY"].Split('/').Last();
-            GITHUB_TOKEN = Vars["GITHUB_TOKEN"];
-            GITHUB_SHA = Vars["GITHUB_SHA"];
-            GITHUB_WORKSPACE = Vars["GITHUB_WORKSPACE"];
+            Vars.TryGetValue("GITHUB_REPOSITORY_OWNER", out GITHUB_REPOSITORY_OWNER);
+            GITHUB_REPOSITORY_OWNER = GITHUB_REPOSITORY_OWNER ?? "";
+
+            Vars.TryGetValue("GITHUB_REPOSITORY_NAME", out GITHUB_REPOSITORY_NAME);
+            GITHUB_REPOSITORY_NAME = GITHUB_REPOSITORY_NAME?.Split('/').Last() ?? "";
+
+            Vars.TryGetValue("GITHUB_TOKEN", out GITHUB_TOKEN);
+            GITHUB_TOKEN = GITHUB_TOKEN ?? "";
+
+            Vars.TryGetValue("GITHUB_SHA", out GITHUB_SHA);
+            GITHUB_SHA = GITHUB_SHA ?? "";
+
+            Vars.TryGetValue("GITHUB_WORKSPACE", out GITHUB_WORKSPACE);
+            GITHUB_WORKSPACE = GITHUB_WORKSPACE ?? "";
+
             // connection to github api 
+#if ENABLE_GH_API
             gitHubClient = new GitHubClient(new ProductHeaderValue(GITHUB_REPOSITORY_OWNER)) {
                 Credentials = new Credentials(GITHUB_TOKEN)
             };
-
+#endif
             //foreach (var p in Vars) {
             //    Console.WriteLine("variable: " + p.Key + "=" + p.Value);
             //}
@@ -130,7 +148,9 @@ namespace GitHubTestLogger {
                 },
                 Status = CheckStatus.InProgress,
             };
+#if ENABLE_GH_API
             CurrentCheckRun = gitHubClient.Check.Run.Create(GITHUB_REPOSITORY_OWNER, GITHUB_REPOSITORY_NAME, check).Result;
+#endif
         }
 
         /// <summary>Raised when a test result is received.</summary>
@@ -156,15 +176,19 @@ namespace GitHubTestLogger {
             }
             if (newAnnotation != null) {
                 var check = new CheckRunUpdate();
-                check.Output.Annotations = new List<NewCheckRunAnnotation>() { newAnnotation };
+                check.Output = new NewCheckRunOutput(CheckRunName, "Running...") {
+                    Annotations = new List<NewCheckRunAnnotation>() { newAnnotation }
+                };
+#if ENABLE_GH_API
                 CurrentCheckRun = gitHubClient.Check.Run.Update(GITHUB_REPOSITORY_OWNER, GITHUB_REPOSITORY_NAME, CurrentCheckRun.Id, check).Result;
+#endif
             }
             // update check run with additional annotations
             //gitHubClient.Check.Run.
             //var check = new CheckRunUpdate();
             //  var newAnnotation = new NewCheckRunAnnotation(CheckAnnotationLevel);
             /*
-TestOutcome:
+    TestOutcome:
         None = 0,
         Passed = 1,
         Failed = 2,
