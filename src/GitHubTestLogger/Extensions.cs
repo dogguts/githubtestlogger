@@ -10,11 +10,15 @@ namespace GitHubTestLogger {
         }
 
         public static TValue GetValueOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, TValue defaultValue = default(TValue)) {
-            // if (dictionary == null) { throw new ArgumentNullException(nameof(dictionary)); }
-            // if (key == null) { throw new ArgumentNullException(nameof(key)); }
-
             TValue value;
             return dictionary.TryGetValue(key, out value) ? value : defaultValue;
+        }
+
+        public static void AppendFormatLine(this StringBuilder stringbuilder, IFormatProvider provider, string format, params object[] args) {
+            stringbuilder.AppendLine(string.Format(provider, format, args));
+        }
+        public static void AppendFormatLine(this StringBuilder stringbuilder, string format, params object[] args) {
+            stringbuilder.AppendLine(string.Format(format, args));
         }
     }
 }

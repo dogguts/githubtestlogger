@@ -24,8 +24,8 @@ namespace xUnitTest {
 
         [Fact]
         public void FactTestFailure() {
-            Console.WriteLine("is this message? (console)");
-            _outputHelper.WriteLine("is this message? (console)");
+            Console.WriteLine("is this message? (Console)");
+            _outputHelper.WriteLine("is this message? (ITestOutputHelper)");
             MoreStackDepth();
         }
 
