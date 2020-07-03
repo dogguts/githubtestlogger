@@ -37,16 +37,19 @@ jobs:
   
     - name: Pack
       run: |
-        dotnet pack $BUILDPATH --configuration $CONFIGURATION \
-                               --include-symbols \ 
-                               --include-source \ 
-                               -p:IncludeSymbols=true \ 
-                               -p:SymbolPackageFormat=snupkg \ 
-                               /p:Version=$REL_VERSION \ 
-                               /p:RepositoryCommit=$GITHUB_SHA \
-                               /p:AssemblyVersion=$REL_VERSION_ONLY \
-                               /p:FileVersion=$REL_VERSION_ONLY \
-                               -o $NUPKGPATH
+        CMD="dotnet pack $BUILDPATH \
+        --configuration $CONFIGURATION \
+        --include-symbols \
+        --include-source \
+        -p:IncludeSymbols=true \
+        -p:SymbolPackageFormat=snupkg \
+        /p:Version=$REL_VERSION \
+        /p:RepositoryCommit=$GITHUB_SHA \
+        /p:AssemblyVersion=$REL_VERSION_ONLY \
+        /p:FileVersion=$REL_VERSION_ONLY \
+        -o $NUPKGPATH"
+        echo $CMD
+        ${CMD}
 
 
 #    - name: GPR NuGet config
