@@ -12,15 +12,16 @@ jobs:
       CONFIGURATION: Release
       BUILDPATH: src/GitHubTestLogger
       NUPKGPATH: packages
-      GITHUB_REF: refs/tags/v0.1-alpha3 #TEST emulate release on push on master
       
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
-    - name: REL_VERSION
+    - name: REL_*
       run: | 
-        REL_VERSION="${GITHUB_REF/refs\/tags\/v/}"  
+        echo '::set-env name=REL_GITHUB_REF::'$GITHUB_REF
+        echo '::set-env name=REL_GITHUB_REF::refs/tags/v0.1-alpha3' #TEST emulate release on push on master
+        REL_VERSION="${REL_GITHUB_REF/refs\/tags\/v/}"  
         echo '::set-env name=REL_VERSION::'$REL_VERSION
         REL_VERSION_ONLY=$( echo "$REL_VERSION" | cut -d\- -f1) 
         echo '::set-env name=REL_VERSION_ONLY::'$REL_VERSION_ONLY
