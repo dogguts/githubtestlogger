@@ -5,10 +5,8 @@ using Xunit.Abstractions;
 
 namespace xUnitTest {
     public class UnitTest1 {
-
         private ITestOutputHelper _outputHelper;
         public UnitTest1(ITestOutputHelper outputHelper) {
-
             _outputHelper = outputHelper;
         }
         [Fact]
