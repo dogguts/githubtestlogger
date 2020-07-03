@@ -20,7 +20,7 @@ jobs:
     - name: Build
       run: dotnet build GitHubTestLogger.sln --configuration Debug
       
-  test-report:
+  test:
     runs-on: ubuntu-latest
 
     steps:
