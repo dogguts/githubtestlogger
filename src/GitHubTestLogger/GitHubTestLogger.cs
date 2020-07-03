@@ -6,26 +6,26 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Client;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
 using Octokit;
 
-namespace GitHubTestLogger {
+namespace Microsoft.TestPlatform.Extensions.GitHub.TestLogger {
 
     [FriendlyName(FriendlyName)]
     [ExtensionUri(ExtensionUri)]
     public class GitHubTestLogger : ITestLoggerWithParameters {
         /// <summary>Uri used to uniquely identify the logger.</summary>
-        public const string ExtensionUri = "logger://github.com/dogguts/GitHubTestLogger";
+        public const string ExtensionUri = "logger://Microsoft/TestPlatform/GitHubLogger/v1";
 
         /// <summary>Friendly name which uniquely identifies this logger.</summary>
         public const string FriendlyName = "github";
 
-        /// <summary>Name of the Check Run/Job</summary>
-        private const string CheckRunName = "test-report";
+        /// <summary>Default Name of the Check Run/Job</summary>
+        private const string DEFAULT_CHECKRUNNAME = "test-report";
 
+        /// <summary>All accumulated variables</summary>
         private IDictionary<string, string> Vars = new Dictionary<string, string>();
 
         /// <summary>
@@ -50,11 +50,10 @@ namespace GitHubTestLogger {
         /// eg. "/home/runner/work/sandbox/sandbox"
         /// </summary>
         private string GITHUB_WORKSPACE = string.Empty;
-        /// <summary>
-        /// The name of the running step.
-        /// eg. "build"
-        /// </summary>
-        private string GITHUB_JOB = string.Empty;
+
+        /// <summary>Name of the Check Run/Job</summary>
+        private string GHL_CHECKRUN_NAME = DEFAULT_CHECKRUNNAME;
+
         private CheckRun? CurrentCheckRun = null;
 
 #if ENABLE_GH_API
@@ -160,14 +159,21 @@ namespace GitHubTestLogger {
             // Build Vars, parameters take precedence over environment variables
             Vars = BuildVariables(parameters, environmentVariables);
 
-            // Keep some frequently used Vars 
+            // Keep some frequently used Vars local
+
+            // name/GHL_CHECKRUN_NAME gets special treatment; parameter="name", env="GHL_CHECKRUN_NAME", default value as defined in const DEFAULT_CHECKRUNNAME
+            if (parameters.Keys.Contains("name", StringComparer.InvariantCultureIgnoreCase)) {
+                GHL_CHECKRUN_NAME = parameters["name"];
+            } else if (Vars.ContainsKey("GHL_CHECKRUN_NAME")) {
+                GHL_CHECKRUN_NAME = Vars["GHL_CHECKRUN_NAME"];
+            }
+
             GITHUB_REPOSITORY_OWNER = Vars.GetValueOrDefault("GITHUB_REPOSITORY_OWNER", string.Empty);
             GITHUB_REPOSITORY_NAME = Vars.GetValueOrDefault("GITHUB_REPOSITORY", string.Empty).Split('/').Last();
             GITHUB_TOKEN = Vars.GetValueOrDefault("GITHUB_TOKEN", string.Empty);
             GITHUB_SHA = Vars.GetValueOrDefault("GITHUB_SHA", string.Empty);
             GITHUB_WORKSPACE = Vars.GetValueOrDefault("GITHUB_WORKSPACE", String.Empty);
-            GITHUB_JOB = Vars.GetValueOrDefault("GITHUB_JOB", String.Empty);
-
+ 
 #if ENABLE_GH_API
             // connection to github api 
             GitHubClient = new GitHubClient(new ProductHeaderValue(GITHUB_REPOSITORY_OWNER)) {
@@ -187,8 +193,8 @@ namespace GitHubTestLogger {
         /// <summary>Raised when a test run starts.</summary> 
         private void Events_TestRunStart(object sender, TestRunStartEventArgs e) {
             // Create new check run, keep in CurrentCheckRun
-            var newCheckRun = new NewCheckRun(CheckRunName, GITHUB_SHA) {
-                Output = new NewCheckRunOutput(CheckRunName, "Starting..."),
+            var newCheckRun = new NewCheckRun(GHL_CHECKRUN_NAME, GITHUB_SHA) {
+                Output = new NewCheckRunOutput(GHL_CHECKRUN_NAME, "Starting..."),
                 Status = CheckStatus.Queued,
             };
 #if ENABLE_GH_API
@@ -222,7 +228,7 @@ namespace GitHubTestLogger {
             }
             if (newAnnotation != null) {
                 var check = new CheckRunUpdate() {
-                    Output = new NewCheckRunOutput(CheckRunName, "Running...") {
+                    Output = new NewCheckRunOutput(GHL_CHECKRUN_NAME, "Running...") {
                         Annotations = new List<NewCheckRunAnnotation>() { newAnnotation }
                     },
                     Status = CheckStatus.InProgress
@@ -263,13 +269,13 @@ namespace GitHubTestLogger {
                     TestOutcome.Skipped => ":large_orange_diamond:",
                     TestOutcome.NotFound => ":skull_and_crossbones:",
                     _ => ":skull:"
-                } + " " + $"{stat.Key.ToString()}: {stat.Value}");
+                } + " " + $"{stat.Key}: {stat.Value}");
             }
             stringBuilder.AppendLine();
             stringBuilder.AppendLine($"Total time: {FormatTimeSpan(e.ElapsedTimeInRunningTests)}");
 
             var check = new CheckRunUpdate() {
-                Output = new NewCheckRunOutput(CheckRunName, stringBuilder.ToString()),
+                Output = new NewCheckRunOutput(GHL_CHECKRUN_NAME, stringBuilder.ToString()),
                 Status = CheckStatus.Completed,
                 Conclusion = gh_conclusion
             };

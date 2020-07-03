@@ -3,12 +3,19 @@ using System;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace xUnitTest {
-    public class UnitTest1 {
-        private ITestOutputHelper _outputHelper;
-        public UnitTest1(ITestOutputHelper outputHelper) {
+
+namespace GitHub.TestLogger.Example.UnitTests {
+
+#pragma warning disable IDE1006 // Naming Styles
+    public class xUnit {
+#pragma warning restore IDE1006 // Naming Styles
+
+        private readonly ITestOutputHelper _outputHelper;
+
+        public xUnit(ITestOutputHelper outputHelper) {
             _outputHelper = outputHelper;
         }
+
         [Fact]
         public void FactTestSuccess() {
             var value = 1;
@@ -22,9 +29,9 @@ namespace xUnitTest {
 
         [Fact]
         public void FactTestFailure() {
-            Console.WriteLine("is this message? (Console)");
-            _outputHelper.WriteLine("is this message? (ITestOutputHelper)");
+            _outputHelper.WriteLine("Hello world...");
             MoreStackDepth();
+            _outputHelper.WriteLine("Goodbye world!");
         }
 
     }

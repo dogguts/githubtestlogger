@@ -1,0 +1,15 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <VersionPrefix>0.1.0</VersionPrefix>
+        <IncludeSymbols>true</IncludeSymbols>
+        <IncludeSource>true</IncludeSource>
+
+        <PackageId>GitHub.TestLogger</PackageId>
+        <Authors>dogguts</Authors>
+        <Description>GitHub logger extensions for Visual Studio Test Platform.</Description>
+        <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+        <PackageTags>dotnet vstest test github logger</PackageTags>
+        <PackageProjectUrl>https://github.com/dogguts/githubtestlogger</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/dogguts/githubtestlogger.git</RepositoryUrl>
+    </PropertyGroup>
+</Project>
