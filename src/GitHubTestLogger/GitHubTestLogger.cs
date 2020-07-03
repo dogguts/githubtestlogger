@@ -175,29 +175,29 @@ namespace GitHubTestLogger {
             };
 #endif
             // Raised when a test run starts.
-            events.TestRunStart += async (s, e) => await Events_TestRunStart(s, e);
+            events.TestRunStart += Events_TestRunStart;
 
             // Raised when a test result is received.
-            events.TestResult += async (s, e) => await Events_TestResult(s, e);
+            events.TestResult += Events_TestResult;
 
             // Raised when a test run is complete.
-            events.TestRunComplete += async (s, e) => await Events_TestRunComplete(s, e);
+            events.TestRunComplete += Events_TestRunComplete;
         }
 
         /// <summary>Raised when a test run starts.</summary> 
-        private async Task Events_TestRunStart(object sender, TestRunStartEventArgs e) {
+        private void Events_TestRunStart(object sender, TestRunStartEventArgs e) {
             // Create new check run, keep in CurrentCheckRun
             var newCheckRun = new NewCheckRun(CheckRunName, GITHUB_SHA) {
                 Output = new NewCheckRunOutput(CheckRunName, "Starting..."),
                 Status = CheckStatus.Queued,
             };
 #if ENABLE_GH_API
-            CurrentCheckRun = await GitHubClient.Check.Run.Create(GITHUB_REPOSITORY_OWNER, GITHUB_REPOSITORY_NAME, newCheckRun);
+            CurrentCheckRun = GitHubClient.Check.Run.Create(GITHUB_REPOSITORY_OWNER, GITHUB_REPOSITORY_NAME, newCheckRun).Result;
 #endif
         }
 
         /// <summary>Raised when a test result is received.</summary>
-        private async Task Events_TestResult(object sender, TestResultEventArgs e) {
+        private void Events_TestResult(object sender, TestResultEventArgs e) {
             if (e.Result.Outcome == TestOutcome.Passed || e.Result.Outcome == TestOutcome.None) {
                 //don't annotate successfull tests
                 return;
@@ -228,13 +228,13 @@ namespace GitHubTestLogger {
                     Status = CheckStatus.InProgress
                 };
 #if ENABLE_GH_API
-                CurrentCheckRun = await GitHubClient.Check.Run.Update(GITHUB_REPOSITORY_OWNER, GITHUB_REPOSITORY_NAME, CurrentCheckRun?.Id ?? -1, check);
+                CurrentCheckRun = GitHubClient.Check.Run.Update(GITHUB_REPOSITORY_OWNER, GITHUB_REPOSITORY_NAME, CurrentCheckRun?.Id ?? -1, check).Result;
 #endif
             }
         }
 
         /// <summary>Raised when a test run is complete.</summary>
-        private async Task Events_TestRunComplete(object sender, TestRunCompleteEventArgs e) {
+        private void Events_TestRunComplete(object sender, TestRunCompleteEventArgs e) {
             // Update the CurrentCheckRun with a test summary, set the test run conclusion and Status=Completed
             CheckConclusion gh_conclusion = CheckConclusion.Neutral;
 
@@ -277,7 +277,7 @@ namespace GitHubTestLogger {
 #if ENABLE_GH_API
             Console.WriteLine("*** Events_TestRunComplete *** Check.Run.Update");
             try {
-                CurrentCheckRun = await GitHubClient.Check.Run.Update(GITHUB_REPOSITORY_OWNER, GITHUB_REPOSITORY_NAME, CurrentCheckRun?.Id ?? -1, check);
+                CurrentCheckRun = GitHubClient.Check.Run.Update(GITHUB_REPOSITORY_OWNER, GITHUB_REPOSITORY_NAME, CurrentCheckRun?.Id ?? -1, check).Result;
             } catch (System.Exception ex) {
                 Console.WriteLine("*** Events_TestRunComplete *** <Exception>");
                 Console.WriteLine(ex.ToString());
