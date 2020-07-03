@@ -21,6 +21,5 @@ jobs:
       run: dotnet build GitHubTestLogger.sln --configuration Debug
     
     - name: Test
-      run: |
-        dotnet test --logger "github;report-warnings=false;GITHUB_TOKEN=${{secrets.GITHUB_TOKEN}}" -c Debug;
-        exit 0
+      run: dotnet test --logger "github;report-warnings=false;GITHUB_TOKEN=${{secrets.GITHUB_TOKEN}}" -c Debug || true
+
