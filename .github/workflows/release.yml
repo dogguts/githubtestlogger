@@ -12,7 +12,8 @@ jobs:
        
     - name: debug/test
       run: | 
-        echo GITHUB_REF = $GITHUB_REF
+        env
+        
 #    - name: Build
 #      run: dotnet build GitHubTestLogger.sln --configuration Release
 # 
