@@ -10,6 +10,6 @@
         <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
         <PackageTags>dotnet vstest test github logger</PackageTags>
         <PackageProjectUrl>https://github.com/dogguts/githubtestlogger</PackageProjectUrl>
-
+        <RepositoryUrl>https://github.com/dogguts/githubtestlogger.git</RepositoryUrl>
     </PropertyGroup>
 </Project>
