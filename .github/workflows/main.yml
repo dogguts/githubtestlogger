@@ -1,9 +1,11 @@
 name: CI
 on:
   push:
-    branches: [ RefactorAndPackage ]
+    branches:
+      - master
   pull_request:
-    branches: [ RefactorAndPackage ]
+    branches:
+      - master
 
 jobs:
   build:
@@ -13,8 +15,12 @@ jobs:
     - uses: actions/checkout@v2
        
     - name: Build
-      run: dotnet build GitHubTestLogger.sln --configuration Debug
-
+      run: dotnet build GitHubTestLogger.sln --configuration Release
+ 
+    - name: Pack
+      run: |
+        dotnet pack src/GitHubTestLogger --configuration Release --include-symbols --include-source -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg -o packages /p:VersionSuffix=$GITHUB_WORKFLOW-$GITHUB_RUN_NUMBER-$GH_SHORT_SHA /p:RepositoryCommit=$GITHUB_SHA
+        
     - name: GPR NuGet config
       shell: bash
       env:
@@ -23,19 +29,15 @@ jobs:
         echo ::set-env name=GH_SHORT_SHA::"`git rev-parse --short "$GITHUB_SHA"`"
         mv github_nuget.config nuget.config
         sed -i.bak 's/GITHUB_TOKEN/${{ secrets.GITHUB_TOKEN }}/g' nuget.config; rm nuget.config.bak
-
-    - name: Pack
-      run: |
-        dotnet pack src/GitHubTestLogger --configuration Release --include-symbols --include-source -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg -o packages /p:VersionSuffix=$GITHUB_WORKFLOW-$GITHUB_RUN_NUMBER-$GH_SHORT_SHA /p:PackageProjectUrl=https://github.com/dogguts/githubtestlogger/tree/$GITHUB_SHA
-    
+            
     - name: Publish packages to GPR
       run: | 
         ls packages/*.*nupkg
         dotnet nuget push 'packages/*.nupkg' --skip-duplicate --source "github" -k ${{secrets.GITHUB_TOKEN}}
     
-    - name: Publish packages to NuGet.org
-      run: |
-        dotnet nuget push 'packages/*.nupkg' --skip-duplicate -s https://api.nuget.org/v3/index.json -k ${{secrets.NUGET_KEY}}
+#    - name: Publish packages to NuGet.org
+#      run: |
+#        dotnet nuget push 'packages/*.nupkg' --skip-duplicate -s https://api.nuget.org/v3/index.json -k ${{secrets.NUGET_KEY}}
         
 #  test:
 #    runs-on: ubuntu-latest
