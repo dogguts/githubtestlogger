@@ -203,7 +203,7 @@ namespace GitHubTestLogger {
                 return;
             }
 
-// Update the CurrentCheckRun with a new Annotation of the test failure (also set Status=InProgress)
+            // Update the CurrentCheckRun with a new Annotation of the test failure (also set Status=InProgress)
             NewCheckRunAnnotation? newAnnotation = null;
             switch (e.Result.Outcome) {
                 case TestOutcome.Failed:
@@ -235,7 +235,7 @@ namespace GitHubTestLogger {
 
         /// <summary>Raised when a test run is complete.</summary>
         private async Task Events_TestRunComplete(object sender, TestRunCompleteEventArgs e) {
-// Update the CurrentCheckRun with a test summary, set the test run conclusion and Status=Completed
+            // Update the CurrentCheckRun with a test summary, set the test run conclusion and Status=Completed
             CheckConclusion gh_conclusion = CheckConclusion.Neutral;
 
             var stringBuilder = new StringBuilder();
@@ -269,15 +269,21 @@ namespace GitHubTestLogger {
             stringBuilder.AppendLine($"Total time: {FormatTimeSpan(e.ElapsedTimeInRunningTests)}");
 
             var check = new CheckRunUpdate() {
-                Output = new NewCheckRunOutput(CheckRunName, stringBuilder.ToString()) {
-
-                },
+                Output = new NewCheckRunOutput(CheckRunName, stringBuilder.ToString()),
                 Status = CheckStatus.Completed,
                 Conclusion = gh_conclusion
             };
 
 #if ENABLE_GH_API
-            CurrentCheckRun = await GitHubClient.Check.Run.Update(GITHUB_REPOSITORY_OWNER, GITHUB_REPOSITORY_NAME, CurrentCheckRun?.Id ?? -1, check);
+            Console.WriteLine("*** Events_TestRunComplete *** Check.Run.Update");
+            try {
+                CurrentCheckRun = await GitHubClient.Check.Run.Update(GITHUB_REPOSITORY_OWNER, GITHUB_REPOSITORY_NAME, CurrentCheckRun?.Id ?? -1, check);
+            } catch (System.Exception ex) {
+                Console.WriteLine("*** Events_TestRunComplete *** <Exception>");
+                Console.WriteLine(ex.ToString());
+                Console.WriteLine("*** Events_TestRunComplete *** </Exception>");
+            }
+            Console.WriteLine("*** Events_TestRunComplete *** Check.Run.Update/done");
 #endif
         }
 
