@@ -2,9 +2,9 @@ name: Release
 on:
   release:
     types: [published]
-  push:           #emulate release on push on master
-    branches:     #emulate release on push on master
-      - master    #emulate release on push on master
+  push:           #TEST emulate release on push on master
+    branches:     #TEST emulate release on push on master
+      - master    #TEST emulate release on push on master
 
 jobs:
   build:
@@ -12,6 +12,7 @@ jobs:
       CONFIGURATION: Release
       BUILDPATH: src/GitHubTestLogger
       NUPKGPATH: packages
+      GITHUB_REF: refs/tags/v0.1-alpha3 #TEST emulate release on push on master
       
     runs-on: ubuntu-latest
 
@@ -43,7 +44,8 @@ jobs:
                                /p:AssemblyVersion=$REL_VERSION_ONLY \
                                /p:FileVersion=$REL_VERSION_ONLY \
                                -o $NUPKGPATH
-#        
+
+
 #    - name: GPR NuGet config
 #      shell: bash
 #      env:
