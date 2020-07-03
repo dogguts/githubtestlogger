@@ -15,9 +15,19 @@ jobs:
     - name: Build
       run: dotnet build GitHubTestLogger.sln --configuration Debug
 
+    - name: GPR NuGet config
+      shell: bash
+      env:
+        WORKSPACE: ${{ github.workspace }}
+      run: |
+        echo ::set-env name=GH_SHORT_SHA::"`git rev-parse --short "$GITHUB_SHA"`"
+        mv github_nuget.config nuget.config
+        sed -i.bak 's/GITHUB_TOKEN/${{ secrets.GITHUB_TOKEN }}/g' nuget.config; rm nuget.config.bak
+
     - name: Pack
       run: |
         dotnet pack src/GitHubTestLogger --configuration Release --include-symbols --include-source -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg -o packages /p:VersionSuffix=$GITHUB_WORKFLOW-$GITHUB_RUN_NUMBER-$GH_SHORT_SHA /p:PackageProjectUrl=https://github.com/dogguts/githubtestlogger/tree/$GITHUB_SHA
+    
     - name: Publish packages to GPR
       run: | 
         ls packages/*.*nupkg
