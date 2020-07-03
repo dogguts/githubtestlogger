@@ -19,7 +19,12 @@ jobs:
         
     - name: Build
       run: dotnet build GitHubTestLogger.sln --configuration Debug
-    
+      
+  test-report:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
     - name: Test
-      run: dotnet test --logger "github;report-warnings=false;GITHUB_TOKEN=${{secrets.GITHUB_TOKEN}}" -c Debug || true
+      run: dotnet test --logger "github;report-warnings=false;GITHUB_TOKEN=${{secrets.GITHUB_TOKEN}}" -c Debug
 
