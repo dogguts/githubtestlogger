@@ -14,7 +14,7 @@
     <RequireLicenseAcceptance>false</RequireLicenseAcceptance>
     <Product>GitHubTestLogger</Product>
     <Authors>bart.verthe@gmail.com</Authors>
-    <RepositoryUrl>https://github.com/dogguts/githubtestlogger</RepositoryUrl>
+    <RepositoryUrl>https://github.com/dogguts/githubtestlogger.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
