@@ -40,9 +40,8 @@ jobs:
                                -p:SymbolPackageFormat=snupkg \ 
                                /p:Version=$REL_VERSION \ 
                                /p:RepositoryCommit=$GITHUB_SHA \
-                               /p:AssemblyVersion=$REL_VERSION
-                                   <AssemblyVersion>0.1.0.0</AssemblyVersion>
-    <FileVersion>0.1.0.0</FileVersion>
+                               /p:AssemblyVersion=$REL_VERSION_ONLY \
+                               /p:FileVersion=$REL_VERSION_ONLY \
                                -o $NUPKGPATH
 #        
 #    - name: GPR NuGet config
