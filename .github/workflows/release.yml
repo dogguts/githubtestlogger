@@ -2,24 +2,48 @@ name: Release
 on:
   release:
     types: [published]
+  push:           #emulate release on push on master
+    branches:     #emulate release on push on master
+      - master    #emulate release on push on master
 
 jobs:
   build:
+    env:
+      CONFIGURATION: Release
+      BUILDPATH: src/GitHubTestLogger
+      NUPKGPATH: packages
+      
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
-       
+    - name: REL_VERSION
+      run: | 
+        REL_VERSION="${GITHUB_REF/refs\/tags\/v/}"  
+        echo '::set-env name=REL_VERSION::'$REL_VERSION
+        REL_VERSION_ONLY=$( echo "$REL_VERSION" | cut -d\- -f1) 
+        echo '::set-env name=REL_VERSION_ONLY::'$REL_VERSION_ONLY
+      
     - name: debug/test
       run: | 
         env
         
-#    - name: Build
-#      run: dotnet build GitHubTestLogger.sln --configuration Release
-# 
-#    - name: Pack
-#      run: |
-#        dotnet pack src/GitHubTestLogger --configuration Release --include-symbols --include-source -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg -o packages /p:VersionSuffix=$GITHUB_WORKFLOW-$GITHUB_RUN_NUMBER-$GH_SHORT_SHA /p:RepositoryCommit=$GITHUB_SHA
+    - name: Build
+      run: dotnet build $BUILDPATH --configuration $CONFIGURATION
+  
+    - name: Pack
+      run: |
+        dotnet pack $BUILDPATH --configuration $CONFIGURATION \
+                               --include-symbols \ 
+                               --include-source \ 
+                               -p:IncludeSymbols=true \ 
+                               -p:SymbolPackageFormat=snupkg \ 
+                               /p:Version=$REL_VERSION \ 
+                               /p:RepositoryCommit=$GITHUB_SHA \
+                               /p:AssemblyVersion=$REL_VERSION
+                                   <AssemblyVersion>0.1.0.0</AssemblyVersion>
+    <FileVersion>0.1.0.0</FileVersion>
+                               -o $NUPKGPATH
 #        
 #    - name: GPR NuGet config
 #      shell: bash
