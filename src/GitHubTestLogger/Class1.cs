@@ -242,6 +242,8 @@ namespace GitHubTestLogger {
 
         /// <summary>Raised when a test run is complete.</summary>
         private async Task Events_TestRunComplete(object sender, TestRunCompleteEventArgs e) {
+            Console.WriteLine($"*** Events_TestRunComplete ***");
+
             CheckConclusion gh_conclusion = CheckConclusion.Neutral;
 
             var stringBuilder = new StringBuilder();
@@ -280,13 +282,21 @@ namespace GitHubTestLogger {
                 },
                 Status = CheckStatus.Completed,
                 Conclusion = gh_conclusion
-
-
             };
-#if ENABLE_GH_API
-                CurrentCheckRun = await GitHubClient.Check.Run.Update(GITHUB_REPOSITORY_OWNER, GITHUB_REPOSITORY_NAME, CurrentCheckRun?.Id ?? -1, check);
-#endif 
 
+#if ENABLE_GH_API
+            Console.WriteLine($"*** Events_TestRunComplete *** => Check.Run.Update");
+
+            //  CurrentCheckRun = await GitHubClient.Check.Run.Update(GITHUB_REPOSITORY_OWNER, GITHUB_REPOSITORY_NAME, CurrentCheckRun?.Id ?? -1, check);
+            try {
+                var xyz = GitHubClient.Check.Run.Update(GITHUB_REPOSITORY_OWNER, GITHUB_REPOSITORY_NAME, CurrentCheckRun?.Id ?? -1, check).Result;
+            } catch (System.Exception ex) {
+                Console.WriteLine($"*** Events_TestRunComplete *** => <EXCEPTION>");
+                Console.WriteLine(ex.ToString());
+                Console.WriteLine($"*** Events_TestRunComplete *** => </EXCEPTION>");
+            }
+#endif
+            Console.WriteLine($"*** Events_TestRunComplete *** => End");
 
         }
 
