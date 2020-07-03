@@ -16,7 +16,6 @@
     <Authors>bart.verthe@gmail.com</Authors>
     <RepositoryUrl>https://github.com/dogguts/githubtestlogger</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <Version>0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
