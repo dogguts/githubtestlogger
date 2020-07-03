@@ -4,6 +4,7 @@
         <IncludeSymbols>true</IncludeSymbols>
         <IncludeSource>true</IncludeSource>
 
+        <PackageId>GitHub.TestLogger</PackageId>
         <Authors>dogguts</Authors>
         <Description>GitHub logger extensions for Visual Studio Test Platform.</Description>
         <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
