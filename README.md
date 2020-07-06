@@ -1,11 +1,8 @@
 # GitHub Test Logger
 GitHub logger extensions for [Visual Studio Test Platform](https://gtihub.com/microsoft/vstest).
 
-| Build | State |
-| ----- | ----- | 
-CI | ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/dogguts/aeon/CI)
-Stable | N/A
-
+ |Builds | [![CI](https://github.com/dogguts/githubtestlogger/workflows/CI/badge.svg)](https://github.com/dogguts/githubtestlogger/workflows/CI) | [![Release](https://github.com/dogguts/githubtestlogger/workflows/Release/badge.svg)](https://github.com/dogguts/githubtestlogger/workflows/Release)
+| ----- | ----- | ----- | 
 
 ## Packages
 |   |  Stable   |   CI |
