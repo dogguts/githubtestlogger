@@ -10,7 +10,7 @@ GitHub logger extensions for [Visual Studio Test Platform](https://gtihub.com/mi
 | GitHub.TestLogger | ![Nuget](https://img.shields.io/nuget/v/GitHub.TestLogger?logoColor=%20) | [GPR](https://github.com/dogguts/githubtestlogger/packages/297979) |
 
 ## Usage
-Github logger can report test results automatically to your workflow. 
+Github logger can report test results automatically to your GitHub workflow. 
 
 :warning: This logger can only be used from within a GitHub workflow, since it requires several environment variables provided by GitHub to access the GitHub Api.
 
