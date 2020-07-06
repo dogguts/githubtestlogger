@@ -11,6 +11,7 @@ GitHub logger extensions for [Visual Studio Test Platform](https://gtihub.com/mi
 
 ## Usage
 Github logger can report test results automatically to your workflow. 
+
 :warning: This logger can only be used from within a GitHub workflow, since it requires several environment variables provided by GitHub to access the GitHub Api.
 See an example: **TODO**
 
@@ -29,7 +30,7 @@ dotnet add package GitHub.TestLogger --version 1.0.0
 dotnet test --logger:github
 ```
 
-### (optional) Parameters 
+### Parameters (optional) 
 Parameters can be set through Parameter with the command line, or through Environment variables
 | Name  |  Parameter   | Environment |   | Default |
 | ----- | ------------ | --- | - | ------- |
