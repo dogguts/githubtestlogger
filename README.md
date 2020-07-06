@@ -32,7 +32,7 @@ dotnet test --logger:github
 ```
 
 ### Parameters (optional) 
-Parameters can be set through Parameter with the command line, or through Environment variables
+Parameters can be set with the command line, or through Environment variables.
 | Name  |  Parameter   | Environment |   | Default |
 | ----- | ------------ | --- | - | ------- |
 | Name  | name         | GHL_CHECKRUN_NAME | The job name the test report will be published under. | test-report |
