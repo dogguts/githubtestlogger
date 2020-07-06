@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
@@ -74,7 +73,6 @@ namespace Microsoft.TestPlatform.Extensions.GitHub.TestLogger {
         }
 
         private static (string filename, string methodname, string sourceline) StackFrameFromTrace(string stackTrace) {
-            var s = new StackFrame();
             var stackLine = stackTrace.Split(new char[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries).Select(f => f.Trim()).First();
             var regex = new System.Text.RegularExpressions.Regex(@"(\ *)at (?<method>.*) in (?<filename>.*):line (?<linenumber>\d+)");
             var match = regex.Match(stackTrace);
@@ -173,7 +171,7 @@ namespace Microsoft.TestPlatform.Extensions.GitHub.TestLogger {
             GITHUB_TOKEN = Vars.GetValueOrDefault("GITHUB_TOKEN", string.Empty);
             GITHUB_SHA = Vars.GetValueOrDefault("GITHUB_SHA", string.Empty);
             GITHUB_WORKSPACE = Vars.GetValueOrDefault("GITHUB_WORKSPACE", String.Empty);
- 
+
 #if ENABLE_GH_API
             // connection to github api 
             GitHubClient = new GitHubClient(new ProductHeaderValue(GITHUB_REPOSITORY_OWNER)) {

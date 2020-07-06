@@ -16,3 +16,4 @@ msbuild.err
 msbuild.wrn
 #TEMP: temp location of docfx nuget install
 docfx.console*
+packages/
