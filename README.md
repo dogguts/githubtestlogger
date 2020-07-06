@@ -13,7 +13,8 @@ GitHub logger extensions for [Visual Studio Test Platform](https://gtihub.com/mi
 Github logger can report test results automatically to your workflow. 
 
 :warning: This logger can only be used from within a GitHub workflow, since it requires several environment variables provided by GitHub to access the GitHub Api.
-See an example: **TODO**
+
+See an example: [githubtestlogger-example](https://github.com/dogguts/githubtestlogger-example)
 
 ### Add a reference to the GitHub Logger nuget package in your test project:
 ```Powershell
@@ -35,7 +36,8 @@ Parameters can be set through Parameter with the command line, or through Enviro
 | Name  |  Parameter   | Environment |   | Default |
 | ----- | ------------ | --- | - | ------- |
 | Name  | name         | GHL_CHECKRUN_NAME | The job name the test report will be published under. | test-report |
-For example to publish test result in a job name "my-test-report":
+
+Eg. to publish test result with name "my-test-report":
 ```sh
 dotnet test --logger "github;name=my-test-report"
 ```
