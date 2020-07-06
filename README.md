@@ -4,6 +4,10 @@ GitHub logger extensions for [Visual Studio Test Platform](https://gtihub.com/mi
  |Builds | [![CI](https://github.com/dogguts/githubtestlogger/workflows/CI/badge.svg)](https://github.com/dogguts/githubtestlogger/workflows/CI) | [![Release](https://github.com/dogguts/githubtestlogger/workflows/Release/badge.svg)](https://github.com/dogguts/githubtestlogger/workflows/Release)
 | ----- | ----- | ----- | 
 
+---
+![Screenshot](./screenshot.png)
+---
+
 ## Packages
 |   |  Stable   |   CI |
 | - | -------------- | -------------- | 
@@ -28,18 +32,19 @@ dotnet add package GitHub.TestLogger --version 1.0.0
 ```
 ### Use the following command line in tests
 ```sh
-dotnet test --logger:github
+dotnet test --logger "github;GITHUB_TOKEN=${{secrets.GITHUB_TOKEN}}"
 ```
 
-### Parameters (optional) 
+### Parameters
 Parameters can be set with the command line, or through Environment variables.
 | Name  |  Parameter   | Environment |   | Default |
 | ----- | ------------ | --- | - | ------- |
-| Name  | name         | GHL_CHECKRUN_NAME | The job name the test report will be published under. | test-report |
+| Github token (mandatory)| GITHUB_TOKEN | [N/A] | The github token that will be used to access the GitHub Api to publish the test results. Usually _${{secrets.GITHUB_TOKEN}}_ |
+| Name (optional) | name         | GHL_CHECKRUN_NAME | The job name the test report will be published under. | test-report |
 
 Eg. to publish test result with name "my-test-report":
 ```sh
-dotnet test --logger "github;name=my-test-report"
+dotnet test --logger "github;name=my-test-report;GITHUB_TOKEN=${{secrets.GITHUB_TOKEN}}"
 ```
 
 ## LICENSE
