@@ -1,8 +1,8 @@
 # GitHub Test Logger
 GitHub logger extensions for [Visual Studio Test Platform](https://gtihub.com/microsoft/vstest).
 
- |Builds | [![CI](https://github.com/dogguts/githubtestlogger/workflows/CI/badge.svg)](https://github.com/dogguts/githubtestlogger/workflows/CI) | [![Release](https://github.com/dogguts/githubtestlogger/workflows/Release/badge.svg)](https://github.com/dogguts/githubtestlogger/workflows/Release)
-| ----- | ----- | ----- | 
+[![CI](https://github.com/dogguts/githubtestlogger/workflows/CI/badge.svg)](https://github.com/dogguts/githubtestlogger/workflows/CI) [![Release](https://github.com/dogguts/githubtestlogger/workflows/Release/badge.svg)](https://github.com/dogguts/githubtestlogger/workflows/Release)
+
 
 ---
 ![Screenshot](./screenshot.png)
